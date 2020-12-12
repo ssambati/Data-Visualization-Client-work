@@ -1,0 +1,40 @@
+<head>
+  <!-- Load plotly.js into the DOM -->
+  <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+</head>
+
+<body>
+  <h2>Scatter Plot of marking Latitude and Longitude on the San Fransisco Map.</h2>
+  <p> Upon hovering the mouse on the markers plotted on the grapg it pop ups the geometry co-ordinates information (latitude,longitude) and the Business Ownership name. Zoom option is enabled so each and every scatter marker can be viewed</p>
+  <div id='myDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
+  <script>
+Plotly.d3.csv(
+  "https://raw.githubusercontent.com/ssambati/Data-Visualization-Client-work/main/data_location.csv",
+  function(err, rows) {
+    function unpack(rows, key) {
+      return rows.map(function(row) {
+        return row[key];
+      });
+    }
+
+    var data = [
+      {
+        type: "scattermapbox",
+        text: unpack(rows, "Ownership name"),
+        lon: unpack(rows, "Longitude"),
+        lat: unpack(rows, "Latitude"),
+        marker: { color: "fuchsia", size: 12 }
+      }
+    ];
+
+    var layout = {
+      dragmode: "zoom",
+      mapbox: { style: "open-street-map", center: { lat: 37.733795, lon: -122.446747 }, zoom: 11 },
+      margin: { r: 0, t: 0, b: 0, l: 0 }
+    };
+
+    Plotly.newPlot("myDiv", data, layout);
+  }
+);
+</script>
+</body>

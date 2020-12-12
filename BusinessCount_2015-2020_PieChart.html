@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Chart</title>
+<style>
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+.title-holder {
+  text-align: center;
+}
+.title {
+  font-family: 'Lato', sans-serif;
+}
+.subtitle {
+  font-size: 20px;
+}
+.font {
+  font-size: 18px;
+}
+
+
+.legend {
+  font-size: 14px;
+}
+rect {
+  cursor: pointer; 
+  stroke-width: 2;
+}
+rect.disabled {
+  fill: transparent !important;
+}
+
+
+#chart {
+  height: 800px;
+  margin: 0 auto;
+  position: relative;
+  display: block;
+  width: 1200px;
+}
+
+.tooltip {
+  background: #eee;
+  box-shadow: 0 0 5px #999999;
+  color: #333;
+  display: none;
+  font-size: 18px;
+  left: 130px;
+  padding: 10px;
+  position: absolute;
+  text-align: center;
+  top: 95px;
+  width: 80px;
+  z-index: 10;
+}
+
+</style>
+
+</head>
+
+<body>
+  <div class="title-holder">
+	<h1 class="title">Donut chart representing various business sectors paying Taxes in San Fransisco</h1>
+	<p class="subtitle">Data Taken from the last 5 years (2015-2020) available in the dataset</p>
+</div>
+<h3>Cordination:</h3>
+<p> By hovering the mouse on the chart, it gives the total count (#) of a particular sector paying tax to the San Fransisco Government and its percentage. On unchecking the labels present right to the chart, particular data will be removed from the chart. On default all the labels are checked and shown in chart.</p>
+  <h3>NAICS Code and thier Description:</h3>
+<p>7210-7219 : Accommodations<br>
+5600-5699 : Administrative and Support Services<br>
+7100-7199 : Arts, Entertainment, and Recreation<br>
+8110-8139 : Certain Services<br>
+2300-2399 : Construction<br>
+5210-5239 : Financial Services<br>
+7220-7229 : Food Services<br>
+5100-5199 : Information<br>
+5240-5249 : Insurance<br>
+3100-3399 : Manufacturing<br>
+6100-6299 : Private Education and Health Services<br>
+5400-5499 : Professional, Scientific, and Technical Services<br>
+5300-5399 : Real Estate and Rental and Leasing Services<br>
+4400-4599 : Retail Trade<br>
+4800-4999 : Transportation and Warehousing<br>
+2200-2299 : Utilities<br>
+4200-4299 : Wholesale Trade<br>
+8100-8399 : Certain Services<br></p>
+
+<div id="chart"></div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.11.0/d3.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.11.0/d3.min.js'></script>
+      <script >
+
+var dataset = [
+{ label: "5400-5499", count: 8941 },
+{ label: "5300-5399", count: 7854 },
+{ label: "2300-2399", count: 6228 },
+{ label: "4400-4599", count: 5444 },
+{ label: "7220-7229", count: 5093 },
+{ label: "6100-6299", count: 4631 },
+{ label: "7210-7219", count: 3163 },
+{ label: "7100-7199", count: 2975 },
+{ label: "4800-4999", count: 2748 },
+{ label: "5210-5239", count: 1786 },
+{ label: "5100-5199", count: 1574 },
+{ label: "8100-8139", count: 1455 },
+{ label: "5600-5699", count: 1434 },
+{ label: "4200-4299", count: 971 },
+{ label: "3100-3399", count: 857 },
+{ label: "5240-5249", count: 254 },
+{ label: "4200-4299 4400-4599", count: 157 },
+{ label: "2200-2299", count: 160 },
+{ label: "4400-4599 4200-4299", count: 140 }
+]
+
+
+
+
+var width = 1250;
+var height = 750;
+
+
+var radius = Math.min(width, height) / 2;
+
+
+var legendRectSize = 25; 
+var legendSpacing = 6; 
+
+
+var color = d3.scaleOrdinal(d3.schemeCategory20c);
+
+
+var svg = d3.select('#chart') 
+.append('svg') 
+.attr('width', width) 
+.attr('height', height) 
+.append('g') 
+.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+
+var arc = d3.arc().
+innerRadius(0) 
+.outerRadius(radius); 
+
+var pie = d3.pie() 
+.value(function (d) {return d.count;}) 
+.sort(null); 
+
+var tooltip = d3.select('#chart') 
+.append('div')                                    
+.attr('class', 'tooltip'); 
+
+tooltip.append('div')                             
+.attr('class', 'label');                          
+
+tooltip.append('div')                      
+.attr('class', 'count');                   
+
+tooltip.append('div')  
+.attr('class', 'percent'); 
+
+
+dataset.forEach(function (d) {
+  d.count = +d.count; 
+  d.enabled = true; 
+});
+
+
+var path = svg.selectAll('path') 
+.data(pie(dataset)) 
+.enter() 
+.append('path') 
+.attr('d', arc) 
+.attr('fill', function (d) {return color(d.data.label);}) 
+.each(function (d) {this._current - d;}); 
+
+
+path.on('mouseover', function (d) {     
+  var total = d3.sum(dataset.map(function (d) {         
+    return d.enabled ? d.count : 0;                                      
+  }));
+  var percent = Math.round(1000 * d.data.count / total) / 10; 
+  tooltip.select('.label').html(d.data.label);            
+  tooltip.select('.count').html('#' + d.data.count);          
+  tooltip.select('.percent').html(percent + '%');           
+  tooltip.style('display', 'block');                     
+});
+
+path.on('mouseout', function () {                   
+  tooltip.style('display', 'none'); 
+});
+
+path.on('mousemove', function (d) {                 
+  tooltip.style('top', d3.event.layerY + 10 + 'px') 
+  .style('left', d3.event.layerX + 10 + 'px'); 
+});
+
+
+var legend = svg.selectAll('.legend') 
+.data(color.domain()) 
+.enter() 
+.append('g') 
+.attr('class', 'legend') 
+.attr('transform', function (d, i) {
+  var height = legendRectSize + legendSpacing;      
+  var offset = height * color.domain().length / 2;   
+  var horz = 18 * legendRectSize; 
+  var vert = i * height - offset;          
+  return 'translate(' + horz + ',' + vert + ')';        
+});
+
+legend.append('rect')                                 
+.attr('width', legendRectSize)                       
+.attr('height', legendRectSize)                     
+.style('fill', color) 
+.style('stroke', color) 
+.on('click', function (label) {
+  var rect = d3.select(this); 
+  var enabled = true; 
+  var totalEnabled = d3.sum(dataset.map(function (d) {
+    return d.enabled ? 1 : 0; 
+  }));
+
+  if (rect.attr('class') === 'disabled') {
+    rect.attr('class', ''); 
+  } else {
+    if (totalEnabled < 2) return; 
+    rect.attr('class', 'disabled'); 
+    enabled = false; 
+  }
+
+  pie.value(function (d) {
+    if (d.label === label) d.enabled = enabled; 
+    return d.enabled ? d.count : 0; 
+  });
+
+  path = path.data(pie(dataset)); 
+
+  path.transition() 
+  .duration(750)  
+  .attrTween('d', function (d) {
+    var interpolate = d3.interpolate(this._current, d); 
+    this._current = interpolate(0); 
+    return function (t) {
+      return arc(interpolate(t));
+    };
+  });
+});
+
+legend.append('text').
+attr('x', legendRectSize + legendSpacing).
+attr('y', legendRectSize - legendSpacing).
+text(function (d) {return d;}); 
+
+    </script>
+</body>
+
+</html>
+ 
